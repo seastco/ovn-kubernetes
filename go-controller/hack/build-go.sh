@@ -24,7 +24,7 @@ build_binaries() {
     set -x
     for bin in "$@"; do
         binbase=$(basename ${bin})
-        env CGO_ENABLED=0 GOOS=linux "$GO" build -v \
+        env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 "$GO" build -v \
             -mod vendor \
             -gcflags "${GCFLAGS}" \
             -ldflags "-B ${BUILDID} \
