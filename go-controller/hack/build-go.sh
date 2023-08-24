@@ -19,12 +19,12 @@ build_binaries() {
     GIT_BRANCH=$(git rev-parse --symbolic-full-name --abbrev-ref HEAD)
     BUILD_USER=$(whoami)
     BUILD_DATE=$(date +"%Y-%m-%d")
-    K8S_CLIENT_VERSION=$(grep 'k8s.io/client-go' ${OVN_KUBE_GO_PACKAGE}/go.sum | head -1 |cut -f2 -d' ')
+    K8S_CLIENT_VERSION=$(grep 'k8s.io/client-go' go.sum | head -1 |cut -f2 -d' ')
 
     set -x
     for bin in "$@"; do
         binbase=$(basename ${bin})
-        env CGO_ENABLED=0 "$GO" build -v \
+        env CGO_ENABLED=0 GOOS=linux "$GO" build -v \
             -mod vendor \
             -gcflags "${GCFLAGS}" \
             -ldflags "-B ${BUILDID} \

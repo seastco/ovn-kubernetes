@@ -26,6 +26,7 @@ func UpdatePodWithRetryOrRollback(podLister listers.PodLister, kube kube.Interfa
 	start := time.Now()
 	var updated bool
 
+	klog.Infof("In UpdatePodWithRetryOrRollback, calling RetryOnConflict for %s", pod.Name)
 	err := retry.RetryOnConflict(OvnConflictBackoff, func() error {
 		pod, err := podLister.Pods(pod.Namespace).Get(pod.Name)
 		if err != nil {
@@ -60,5 +61,6 @@ func UpdatePodWithRetryOrRollback(podLister listers.PodLister, kube kube.Interfa
 		klog.Infof("[%s/%s] pod update took %v", pod.Namespace, pod.Name, time.Since(start))
 	}
 
+	klog.Infof("Returning from UpdatePodWithRetryOrRollback for %s", pod.Name)
 	return nil
 }

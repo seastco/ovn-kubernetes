@@ -402,7 +402,9 @@ func (bnc *BaseNetworkController) getExpectedSwitchName(pod *kapi.Pod) (string, 
 // it, also there returned boolean will be true if the pod subnet belong to
 // controller's zone.
 func (bnc *BaseNetworkController) ensurePodAnnotation(pod *kapi.Pod, nadName string) (*util.PodAnnotation, bool, error) {
+	klog.Infof("In bnc.ensurePodAnnotation, checking IsPodLiveMigratable for pod %s and network %s", pod.Name, nadName)
 	if kubevirt.IsPodLiveMigratable(pod) {
+		klog.Infof("Pod is migratable, calling EnsurePodAnnotationForVM for pod %s and network %s", pod.Name, nadName)
 		podAnnotation, err := kubevirt.EnsurePodAnnotationForVM(bnc.watchFactory, bnc.kube, pod, bnc.NetInfo, nadName)
 		if err != nil {
 			return nil, false, err
@@ -415,6 +417,7 @@ func (bnc *BaseNetworkController) ensurePodAnnotation(pod *kapi.Pod, nadName str
 		_, zoneContainsPodSubnet := kubevirt.ZoneContainsPodSubnet(bnc.lsManager, podAnnotation)
 		return podAnnotation, zoneContainsPodSubnet, nil
 	}
+	klog.Infof("Pod is not LiveMigratable, unmarshalling pod annotation for pod %s and network %s", pod.Name, nadName)
 	podAnnotation, err := util.UnmarshalPodAnnotation(pod.Annotations, nadName)
 	if err != nil {
 		return nil, true, nil
@@ -737,12 +740,14 @@ func calculateStaticMAC(podDesc string, mac string) (net.HardwareAddr, error) {
 
 // allocatePodAnnotation and update the corresponding pod annotation.
 func (bnc *BaseNetworkController) allocatePodAnnotation(pod *kapi.Pod, existingLSP *nbdb.LogicalSwitchPort, podDesc, nadName string, network *nadapi.NetworkSelectionElement) (*util.PodAnnotation, bool, error) {
+	klog.Infof("In base_network_controller_pods.go::allocatePodAnnotation for pod %s and network %s", pod.Name, nadName)
 	var releaseIPs bool
 	var podMac net.HardwareAddr
 	var podIfAddrs []*net.IPNet
 
 	switchName := pod.Spec.NodeName
 
+	klog.Infof("Calling bnc.ensurePodAnnotation for pod %s and network %s", pod.Name, nadName)
 	podAnnotation, zoneContainsPodSubnet, err := bnc.ensurePodAnnotation(pod, nadName)
 	if err != nil {
 		return nil, false, fmt.Errorf("unable to ensure pod annotation: %v", err)
@@ -875,6 +880,7 @@ func (bnc *BaseNetworkController) allocatePodAnnotation(pod *kapi.Pod, existingL
 // allocatePodAnnotationForSecondaryNetwork and update the corresponding pod
 // annotation.
 func (bnc *BaseNetworkController) allocatePodAnnotationForSecondaryNetwork(pod *kapi.Pod, lsp *nbdb.LogicalSwitchPort, nadName string, network *nadapi.NetworkSelectionElement) (*util.PodAnnotation, bool, error) {
+	klog.Infof("In allocatePodAnnotationForSecondaryNetwork for pod %s", pod.Name)
 	switchName, err := bnc.getExpectedSwitchName(pod)
 	if err != nil {
 		return nil, false, err
@@ -907,7 +913,7 @@ func (bnc *BaseNetworkController) allocatePodAnnotationForSecondaryNetwork(pod *
 		network.IPRequest = util.StringSlice(ips)
 		reallocate = true
 
-		klog.V(5).Infof("Will attempt to use LSP IP addresses %v and mac %s for pod %s/%s/%s",
+		klog.Infof("Will attempt to use LSP IP addresses %v and mac %s for pod %s/%s/%s",
 			network.IPRequest, network.MacRequest, nadName, pod.Namespace, pod.Name)
 	}
 
@@ -916,6 +922,7 @@ func (bnc *BaseNetworkController) allocatePodAnnotationForSecondaryNetwork(pod *
 		ipAllocator = bnc.lsManager.ForSwitch(switchName)
 	}
 
+	klog.Infof("Calling AllocatePodAnnotation for pod %s", pod.Name)
 	updatedPod, podAnnotation, err := bnc.podAnnotationAllocator.AllocatePodAnnotation(
 		ipAllocator,
 		pod,
@@ -923,12 +930,14 @@ func (bnc *BaseNetworkController) allocatePodAnnotationForSecondaryNetwork(pod *
 		reallocate,
 	)
 
+	klog.Infof("Done calling AllocatePodAnnotation for pod %s", pod.Name)
 	if err != nil {
+		klog.Infof("Returning error after calling AllocatePodAnnotation for pod %s", pod.Name)
 		return nil, false, err
 	}
 
 	if updatedPod != nil {
-		klog.V(5).Infof("Allocated IP addresses %v, mac address %s, gateways %v and routes %s for pod %s/%s on nad %s",
+		klog.Infof("Allocated IP addresses %v, mac address %s, gateways %v and routes %s for pod %s/%s on nad %s",
 			util.StringSlice(podAnnotation.IPs),
 			podAnnotation.MAC,
 			util.StringSlice(podAnnotation.Gateways),

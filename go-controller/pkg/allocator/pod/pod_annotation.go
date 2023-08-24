@@ -76,6 +76,7 @@ func allocatePodAnnotation(
 	podAnnotation *util.PodAnnotation,
 	err error) {
 
+	klog.Infof("In pod_annotation.go::allocatePodAnnotation for %s", pod.Name)
 	// no id allocation
 	var idAllocator id.NamedAllocator
 
@@ -91,6 +92,7 @@ func allocatePodAnnotation(
 		return pod, rollback, err
 	}
 
+	klog.Infof("Calling UpdatePodWithRetryOrRollback for %s", pod.Name)
 	err = util.UpdatePodWithRetryOrRollback(
 		podLister,
 		kube,
@@ -102,6 +104,7 @@ func allocatePodAnnotation(
 		return nil, nil, err
 	}
 
+	klog.Infof("Returning from UpdatePodWithRetryOrRollback for %s", pod.Name)
 	return pod, podAnnotation, nil
 }
 
@@ -210,6 +213,7 @@ func allocatePodAnnotationWithRollback(
 	}
 	podDesc := fmt.Sprintf("%s/%s/%s", nadName, pod.Namespace, pod.Name)
 
+	klog.Infof("In pod_annotation.go::AllocatePodAnnotationWithRollback for pod %s and network %s", pod.Name, network.Name)
 	// the IPs we allocate in this function need to be released back to the IPAM
 	// pool if there is some error in any step past the point the IPs were
 	// assigned via the IPAM manager. Note we are using a named return variable
@@ -290,6 +294,7 @@ func allocatePodAnnotationWithRollback(
 
 	if len(tentative.IPs) == 0 {
 		if hasIPRequest {
+			klog.Infof("len(tentative.IPs) == 0 and hasIPRequest == true for pod %s and network %s", pod.Name, network.Name)
 			tentative.IPs, err = util.ParseIPNets(network.IPRequest)
 			if err != nil {
 				return
@@ -298,7 +303,9 @@ func allocatePodAnnotationWithRollback(
 	}
 
 	if hasIPAM {
+		klog.Infof("hasIPAM == true for pod %s and network %s", pod.Name, network.Name)
 		if len(tentative.IPs) > 0 {
+			klog.Infof("len(tentative.IPs) > 0 for pod %s and network %s", pod.Name, network.Name)
 			if err = ipAllocator.AllocateIPs(tentative.IPs); err != nil && !ip.IsErrAllocated(err) {
 				err = fmt.Errorf("failed to ensure requested or annotated IPs %v for %s: %w",
 					util.StringSlice(tentative.IPs), podDesc, err)
@@ -320,6 +327,7 @@ func allocatePodAnnotationWithRollback(
 		}
 
 		if len(tentative.IPs) == 0 {
+			klog.Infof("len(tentative.IPs) == 0 for pod %s and network %s", pod.Name, network.Name)
 			tentative.IPs, err = ipAllocator.AllocateNextIPs()
 			if err != nil {
 				err = fmt.Errorf("failed to assign pod addresses for %s: %w", podDesc, err)
@@ -332,6 +340,7 @@ func allocatePodAnnotationWithRollback(
 	}
 
 	if needsIPOrMAC {
+		klog.Infof("needsIPOrMac == true for pod %s and network %s", pod.Name, network.Name)
 		// handle mac address
 		if network != nil && network.MacRequest != "" {
 			tentative.MAC, err = net.ParseMAC(network.MacRequest)
@@ -354,10 +363,12 @@ func allocatePodAnnotationWithRollback(
 	needsAnnotationUpdate := needsIPOrMAC || needsID
 
 	if needsAnnotationUpdate {
+		klog.Infof("needsAnnotationUpdate == true for pod %s and network, calling MarshalPodAnnotation", pod.Name, network.Name)
 		updatedPod = pod
 		updatedPod.Annotations, err = util.MarshalPodAnnotation(updatedPod.Annotations, tentative, nadName)
 		podAnnotation = tentative
 	}
 
+	klog.Infof("Returning from allocatePodAnnotationWithRollback for pod %s and network %s", pod.Name, network.Name)
 	return
 }

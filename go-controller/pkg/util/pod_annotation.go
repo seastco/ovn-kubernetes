@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"k8s.io/klog/v2"
 	"net"
 
 	nadapi "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
@@ -106,9 +107,11 @@ type podRoute struct {
 
 // MarshalPodAnnotation adds the pod's network details of the specified network to the corresponding pod annotation.
 func MarshalPodAnnotation(annotations map[string]string, podInfo *PodAnnotation, nadName string) (map[string]string, error) {
+	klog.Infof("Marshalling pod networks annotation for nadName=%s", nadName)
 	if annotations == nil {
 		annotations = make(map[string]string)
 	}
+	klog.Infof("Unmarshing existing pod networks annotation for nadName=%s", nadName)
 	podNetworks, err := UnmarshalPodAnnotationAllNetworks(annotations)
 	if err != nil {
 		return nil, err
@@ -118,6 +121,7 @@ func MarshalPodAnnotation(annotations map[string]string, podInfo *PodAnnotation,
 		MAC:      podInfo.MAC.String(),
 	}
 
+	klog.Infof("Setting gateway and IP on annotation for nadName=%s", nadName)
 	if len(podInfo.IPs) == 1 {
 		pa.IP = podInfo.IPs[0].String()
 		if len(podInfo.Gateways) == 1 {
@@ -129,6 +133,7 @@ func MarshalPodAnnotation(annotations map[string]string, podInfo *PodAnnotation,
 	for _, ip := range podInfo.IPs {
 		pa.IPs = append(pa.IPs, ip.String())
 	}
+	klog.Infof("Set gateway=%s and IP=%s for nadName=%s", pa.Gateway, pa.IP, nadName)
 
 	existingPa, ok := podNetworks[nadName]
 	if ok {
@@ -146,6 +151,7 @@ func MarshalPodAnnotation(annotations map[string]string, podInfo *PodAnnotation,
 		pa.Gateways = append(pa.Gateways, gw.String())
 	}
 
+	klog.Infof("Set routes for nadName=%s", nadName)
 	for _, r := range podInfo.Routes {
 		if r.Dest.IP.IsUnspecified() {
 			return nil, fmt.Errorf("bad podNetwork data: default route %v should be specified as gateway", r)
@@ -164,6 +170,7 @@ func MarshalPodAnnotation(annotations map[string]string, podInfo *PodAnnotation,
 	if err != nil {
 		return nil, fmt.Errorf("failed marshaling podNetworks map %v", podNetworks)
 	}
+	klog.Infof("Updating pod networks annotation for nadName=%s", nadName)
 	annotations[OvnPodAnnotationName] = string(bytes)
 	return annotations, nil
 }

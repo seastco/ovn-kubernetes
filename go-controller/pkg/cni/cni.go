@@ -2,12 +2,11 @@ package cni
 
 import (
 	"fmt"
-	"net"
-
 	kapi "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/klog/v2"
 	utilnet "k8s.io/utils/net"
+	"net"
 
 	current "github.com/containernetworking/cni/pkg/types/100"
 	"github.com/ovn-org/ovn-kubernetes/go-controller/pkg/config"
@@ -100,6 +99,12 @@ func (pr *PodRequest) checkOrUpdatePodUID(pod *kapi.Pod) error {
 }
 
 func (pr *PodRequest) cmdAdd(kubeAuth *KubeAPIAuth, clientset *ClientSet) (*Response, error) {
+	klog.Infof("cni.go::cmdAdd")
+	klog.Infof("PodRequest PodNamespace=%s, PodName=%s, PodUID=%s, SandboxID=%s, Netns=%s, IfName=%s, netName=%s, nadName=%s",
+		pr.PodNamespace, pr.PodName, pr.PodUID, pr.SandboxID, pr.Netns, pr.IfName, pr.netName, pr.nadName)
+	klog.Infof("PodRequest.CNIConf Topology=%s, NADName=%s, Subnets=%s, ExcludeSubnets=%s, VLANID=%s",
+		pr.CNIConf.Topology, pr.CNIConf.NADName, pr.CNIConf.Subnets, pr.CNIConf.ExcludeSubnets, pr.CNIConf.VLANID)
+
 	namespace := pr.PodNamespace
 	podName := pr.PodName
 	if namespace == "" || podName == "" {
@@ -110,8 +115,10 @@ func (pr *PodRequest) cmdAdd(kubeAuth *KubeAPIAuth, clientset *ClientSet) (*Resp
 	annotCondFn := isOvnReady
 	netdevName := ""
 	if pr.CNIConf.DeviceID != "" {
+		klog.Infof("DeviceID is empty")
 		var err error
 
+		klog.Infof("Calling GetNetdevNameFromDeviceId")
 		netdevName, err = util.GetNetdevNameFromDeviceId(pr.CNIConf.DeviceID)
 		if err != nil {
 			return nil, fmt.Errorf("failed in cmdAdd while getting Netdevice name: %v", err)
@@ -129,6 +136,7 @@ func (pr *PodRequest) cmdAdd(kubeAuth *KubeAPIAuth, clientset *ClientSet) (*Resp
 	}
 	// Get the IP address and MAC address of the pod
 	// for DPU, ensure connection-details is present
+	klog.Infof("Getting pod annotations for pod %s and network %s", podName, pr.nadName)
 	pod, annotations, podNADAnnotation, err := GetPodWithAnnotations(pr.ctx, clientset, namespace, podName,
 		pr.nadName, annotCondFn)
 	if err != nil {
@@ -138,24 +146,30 @@ func (pr *PodRequest) cmdAdd(kubeAuth *KubeAPIAuth, clientset *ClientSet) (*Resp
 		return nil, err
 	}
 
+	klog.Infof("Getting interface info for pod %s and network %s", podName, pr.nadName)
 	podInterfaceInfo, err := PodAnnotation2PodInfo(annotations, podNADAnnotation, pr.PodUID, netdevName,
 		pr.nadName, pr.netName, pr.CNIConf.MTU)
 	if err != nil {
 		return nil, err
 	}
 
+	klog.Infof("Checking if we should skipIPConfig for pod %s and network %s", podName, pr.nadName)
 	podInterfaceInfo.SkipIPConfig = kubevirt.IsPodLiveMigratable(pod)
+	klog.Infof("SkipIPConfig=%s for pod %s and network %s", podInterfaceInfo.SkipIPConfig, podName, pr.nadName)
 
 	response := &Response{KubeAuth: kubeAuth}
 	if !config.UnprivilegedMode {
+		klog.Infof("Calling getCNIResult and setting response.Result for pod %s and network %s", podName, pr.nadName)
 		response.Result, err = pr.getCNIResult(clientset, podInterfaceInfo)
 		if err != nil {
 			return nil, err
 		}
 	} else {
+		klog.Infof("Setting response.PodIFInfo for pod %s and network %s", podName, pr.nadName)
 		response.PodIFInfo = podInterfaceInfo
 	}
 
+	klog.Infof("Returning response for cmdAdd for pod %s and network %s", podName, pr.nadName)
 	return response, nil
 }
 

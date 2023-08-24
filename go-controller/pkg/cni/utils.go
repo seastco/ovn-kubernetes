@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"k8s.io/klog/v2"
 	"time"
 
 	"github.com/ovn-org/ovn-kubernetes/go-controller/pkg/config"
@@ -65,6 +66,7 @@ func GetPodWithAnnotations(ctx context.Context, getter PodInfoGetter,
 	var notFoundCount uint
 
 	for {
+		klog.Infof("Waiting for isOvnReady to finish for pod %s and network %s", name, nadName)
 		select {
 		case <-ctx.Done():
 			detail := "timed out"
