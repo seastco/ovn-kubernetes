@@ -117,6 +117,7 @@ func (sncm *secondaryNetworkClusterManager) NewNetworkController(nInfo util.NetI
 }
 
 func (sncm *secondaryNetworkClusterManager) isTopologyManaged(nInfo util.NetInfo) bool {
+	klog.Infof("Topology type: %s", nInfo.TopologyType())
 	switch nInfo.TopologyType() {
 	case ovntypes.Layer3Topology:
 		// we need to allocate subnets to each node regardless of configuration
@@ -128,6 +129,7 @@ func (sncm *secondaryNetworkClusterManager) isTopologyManaged(nInfo util.NetInfo
 	case ovntypes.LocalnetTopology:
 		// for IC, pod IPs need to be allocated
 		// in non IC config, this is done from ovnkube-master network controller
+		klog.Infof("EnableInterconnect: %s, len(nInfo.Subnets()): %d", config.OVNKubernetesFeature.EnableInterconnect, len(nInfo.Subnets()))
 		return config.OVNKubernetesFeature.EnableInterconnect && len(nInfo.Subnets()) > 0
 	}
 	return false
