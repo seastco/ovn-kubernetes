@@ -55,13 +55,7 @@ spec:
 
         securityContext:
           runAsUser: 0
-          {% if ovn_unprivileged_mode=="no" -%}
           privileged: true
-          {% else -%}
-          capabilities:
-            add:
-            - NET_ADMIN
-          {% endif %}
 
         terminationMessagePolicy: FallbackToLogsOnError
         volumeMounts:
@@ -261,8 +255,7 @@ spec:
 
         securityContext:
           runAsUser: 0
-          capabilities:
-            add: ["SYS_NICE"]
+          privileged: true
 
         terminationMessagePolicy: FallbackToLogsOnError
         volumeMounts:
@@ -322,8 +315,7 @@ spec:
 
         securityContext:
           runAsUser: 0
-          capabilities:
-            add: ["NET_ADMIN"]
+          privileged: true
 
         terminationMessagePolicy: FallbackToLogsOnError
         volumeMounts:
@@ -349,22 +341,16 @@ spec:
               fieldPath: status.hostIP
         # end of container
       {% endif -%}
-
-      {% if ovnkube_app_name=="ovnkube-node-dpu-host" -%}
-      nodeSelector:
-        kubernetes.io/os: "linux"
-        k8s.ovn.org/dpu-host: ""
-      {% else -%}
-      nodeSelector:
-        kubernetes.io/os: "linux"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
             - matchExpressions:
-              - key: k8s.ovn.org/dpu-host
-                operator: DoesNotExist
-      {% endif -%}
+              - key: node_type
+                operator: In
+                values:
+                - ovn
+                - application
       volumes:
       # Common volumes
       - name: host-var-run-dbus

@@ -74,8 +74,7 @@ spec:
 
         securityContext:
           runAsUser: 0
-          capabilities:
-            add: ["NET_ADMIN"]
+          privileged: true
 
         terminationMessagePolicy: FallbackToLogsOnError
         volumeMounts:
@@ -143,8 +142,7 @@ spec:
 
         securityContext:
           runAsUser: 0
-          capabilities:
-            add: ["NET_ADMIN"]
+          privileged: true
 
         terminationMessagePolicy: FallbackToLogsOnError
         volumeMounts:
@@ -199,12 +197,9 @@ spec:
           initialDelaySeconds: 30
           timeoutSeconds: 30
           periodSeconds: 60
-
       # end of container
-
       nodeSelector:
-        node-role.kubernetes.io/control-plane: ""
-        kubernetes.io/os: "linux"
+        node_type: application
       volumes:
       - name: host-var-lib-ovs
         hostPath:
