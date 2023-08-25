@@ -64,9 +64,9 @@ func (c *ClientSet) getPod(namespace, name string) (*kapi.Pod, error) {
 func GetPodWithAnnotations(ctx context.Context, getter PodInfoGetter,
 	namespace, name, nadName string, annotCond podAnnotWaitCond) (*kapi.Pod, map[string]string, *util.PodAnnotation, error) {
 	var notFoundCount uint
+	klog.Infof("Waiting for isOvnReady to finish for pod %s and network %s", name, nadName)
 
 	for {
-		klog.Infof("Waiting for isOvnReady to finish for pod %s and network %s", name, nadName)
 		select {
 		case <-ctx.Done():
 			detail := "timed out"

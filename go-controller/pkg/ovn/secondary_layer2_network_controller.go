@@ -31,7 +31,7 @@ type SecondaryLayer2NetworkController struct {
 
 // NewSecondaryLayer2NetworkController create a new OVN controller for the given secondary layer2 nad
 func NewSecondaryLayer2NetworkController(cnci *CommonNetworkControllerInfo, netInfo util.NetInfo) *SecondaryLayer2NetworkController {
-
+	klog.Infof("Initializing NewSecondaryLayer2NetworkController")
 	stopChan := make(chan struct{})
 
 	ipv4Mode, ipv6Mode := netInfo.IPMode()

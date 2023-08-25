@@ -56,6 +56,7 @@ type NetworkControllerManager struct {
 }
 
 func (cm *NetworkControllerManager) NewNetworkController(nInfo util.NetInfo) (nad.NetworkController, error) {
+	klog.Infof("Initializing NewNetworkController")
 	cnci, err := cm.newCommonNetworkControllerInfo()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create network controller info %w", err)
