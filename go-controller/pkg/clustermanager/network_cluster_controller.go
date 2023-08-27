@@ -91,8 +91,7 @@ func (ncc *networkClusterController) hasPodAllocation() bool {
 	case types.Layer2Topology:
 		// We need to allocate the PodAnnotation
 		klog.Infof("EnableInterconnect in hasPodAllocation: %s", config.OVNKubernetesFeature.EnableInterconnect)
-		return true
-		//return config.OVNKubernetesFeature.EnableInterconnect
+		return config.OVNKubernetesFeature.EnableInterconnect
 	case types.LocalnetTopology:
 		// We need to allocate the PodAnnotation if there is IPAM
 		return config.OVNKubernetesFeature.EnableInterconnect && len(ncc.Subnets()) > 0

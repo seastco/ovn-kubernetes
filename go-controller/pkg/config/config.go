@@ -1006,7 +1006,8 @@ var OVNK8sFeatureFlags = []cli.Flag{
 		Name:        "enable-interconnect",
 		Usage:       "Configure to enable interconnecting multiple zones.",
 		Destination: &cliConfig.OVNKubernetesFeature.EnableInterconnect,
-		Value:       OVNKubernetesFeature.EnableInterconnect,
+		Value:       true,
+		//Value:       OVNKubernetesFeature.EnableInterconnect, // TODO
 	},
 	&cli.BoolFlag{
 		Name:        "enable-egress-service",

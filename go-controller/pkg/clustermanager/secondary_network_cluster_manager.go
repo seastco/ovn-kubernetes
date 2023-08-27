@@ -126,8 +126,7 @@ func (sncm *secondaryNetworkClusterManager) isTopologyManaged(nInfo util.NetInfo
 		// for IC, pod IPs and tunnel IDs need to be allocated
 		// in non IC config, this is done from ovnkube-master network controller
 		klog.Infof("EnableInterconnect in isTopologyManaged: %s", config.OVNKubernetesFeature.EnableInterconnect)
-		return true
-		//return config.OVNKubernetesFeature.EnableInterconnect
+		return config.OVNKubernetesFeature.EnableInterconnect
 	case ovntypes.LocalnetTopology:
 		// for IC, pod IPs need to be allocated
 		// in non IC config, this is done from ovnkube-master network controller

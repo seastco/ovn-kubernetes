@@ -889,6 +889,7 @@ func (bnc *BaseNetworkController) allocatePodAnnotationForSecondaryNetwork(pod *
 	// In certain configurations, pod IP allocation is handled from cluster
 	// manager so wait for it to allocate the IPs
 	if !bnc.allocatesPodAnnotation() {
+		// bnc does NOT allocate pod annotation and EnableInterconnect is FALSE
 		podAnnotation, _ := util.UnmarshalPodAnnotation(pod.Annotations, nadName)
 		if !util.IsValidPodAnnotation(podAnnotation) {
 			return nil, false, fmt.Errorf("failed to get PodAnnotation for %s/%s/%s, cluster manager might have not allocated it yet",
