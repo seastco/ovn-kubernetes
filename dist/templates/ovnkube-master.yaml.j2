@@ -42,9 +42,19 @@ spec:
       {% endif %}
       # required to be scheduled on a linux node with node-role.kubernetes.io/control-plane label and
       # only one instance of ovnkube-master pod per node
-      nodeSelector:
-        node_type: application
       affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: In
+                    values:
+                      - ""
+                  - key: kubernetes.io/os
+                    operator: In
+                    values:
+                      - "linux"
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
@@ -60,10 +70,14 @@ spec:
       - name: ovn-northd
         image: "{{ ovn_image | default('docker.io/ovnkube/ovn-daemonset:latest') }}"
         imagePullPolicy: "{{ ovn_image_pull_policy | default('IfNotPresent') }}"
+
         command: ["/root/ovnkube.sh", "run-ovn-northd"]
+
         securityContext:
           runAsUser: 0
-          privileged: true
+          capabilities:
+            add: ["SYS_NICE"]
+
         terminationMessagePolicy: FallbackToLogsOnError
         volumeMounts:
         # Run directories where we need to be able to access sockets
@@ -117,7 +131,13 @@ spec:
         command: ["/root/ovnkube.sh", "ovn-master"]
         securityContext:
           runAsUser: 0
+          {% if ovn_unprivileged_mode=="no" -%}
           privileged: true
+          {% else %}
+          capabilities:
+            add:
+            - NET_ADMIN
+          {% endif %}
         {% if ovn_dummy_gateway_bridge=="true" %}
         lifecycle:
           postStart:
@@ -134,7 +154,6 @@ spec:
         command: ["/root/ovnkube.sh", "ovn-master"]
         securityContext:
           runAsUser: 0
-          privileged: true
         {% endif %}
         terminationMessagePolicy: FallbackToLogsOnError
         volumeMounts:
