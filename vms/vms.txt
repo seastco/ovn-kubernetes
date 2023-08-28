@@ -4,7 +4,7 @@ apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
   name: vm-server
-  namespace: steve
+  namespace: default
 spec:
   running: true
   template:
@@ -59,7 +59,7 @@ apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
   name: vm-client
-  namespace: steve
+  namespace: default
 spec:
   running: true
   template:
