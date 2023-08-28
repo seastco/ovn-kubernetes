@@ -113,12 +113,8 @@ echo "ref: $(git rev-parse  --symbolic-full-name HEAD)  commit: $(git rev-parse 
 
 Now, build the image with:
 ~~~
-OVN_IMAGE=<registry>/ovn-daemonset-f:latest
-docker build -t $OVN_IMAGE -f Dockerfile.fedora . 
-docker push $OVN_IMAGE
-# or for buildah/podman:
-# buildah bud -t $OVN_IMAGE -f Dockerfile.fedora .
-# podman push $OVN_IMAGE
+docker build --platform=linux/amd64 -t ghcr.io/seastco/ovn-kubernetes -f Dockerfile.fedora .
+docker push ghcr.io/seastco/ovn-kubernetes
 ~~~
 
 # Docs overview
