@@ -1006,8 +1006,8 @@ var OVNK8sFeatureFlags = []cli.Flag{
 		Name:        "enable-interconnect",
 		Usage:       "Configure to enable interconnecting multiple zones.",
 		Destination: &cliConfig.OVNKubernetesFeature.EnableInterconnect,
-		Value:       true,
-		//Value:       OVNKubernetesFeature.EnableInterconnect, // TODO
+		Value:       true, // TODO: added for testing
+		//Value:       OVNKubernetesFeature.EnableInterconnect,
 	},
 	&cli.BoolFlag{
 		Name:        "enable-egress-service",
@@ -1820,6 +1820,7 @@ func buildOVNKubernetesFeatureConfig(ctx *cli.Context, cli, file *config) error 
 	if err := overrideFields(&OVNKubernetesFeature, &cli.OVNKubernetesFeature, &savedOVNKubernetesFeature); err != nil {
 		return err
 	}
+	OVNKubernetesFeature.EnableInterconnect = true // TODO: added for testing
 	return nil
 }
 
