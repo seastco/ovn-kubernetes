@@ -33,10 +33,11 @@ mkdir -p $HOME/work/src/github.com/ovn-org
 cd $HOME/work/src/github.com/ovn-org
 git clone https://github.com/ovn-org/ovn-kubernetes
 cd $HOME/work/src/github.com/ovn-org/ovn-kubernetes/dist/images
-./daemonset.sh --image=docker.io/ovnkube/ovn-daemonset-u:latest \
-    --net-cidr=192.168.0.0/16/24 --svc-cidr=172.16.1.0/24 \
+./daemonset.sh --image=ghcr.io/seastco/ovn-kubernetes@sha256:42b8b212e6cdda03ffd6d16fce792c253df5005eca618cbb263d38b3ac3bf9a0 \
+    --net-cidr=10.244.0.0/16 --svc-cidr=10.96.0.0/16 \
     --gateway-mode="local" \
-    --k8s-apiserver=https://$MASTER_IP:6443
+    --k8s-apiserver=https://10.48.3.14:6443 \
+    --master-loglevel="5" --node-loglevel="5" --dbchecker-loglevel="5" 
 ```
 
 Take note that the image `docker.io/ovnkube/ovn-daemonset-u:latest` is horribly outdated. You should [build your own image](#building-the-daemonset-container) and use that instead.
