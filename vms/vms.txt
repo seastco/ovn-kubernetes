@@ -1,0 +1,113 @@
+cat <<EOF | kubectl apply -f -
+---
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  name: vm-server
+  namespace: steve
+spec:
+  running: true
+  template:
+    spec:
+      nodeSelector:
+        node_type: ovn
+      domain:
+        devices:
+          disks:
+            - name: containerdisk
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - name: default
+              masquerade: {}
+              bootOrder: 1
+            - name: flatl2-overlay
+              bridge: {}
+              bootOrder: 2
+        machine:
+          type: ""
+        resources:
+          requests:
+            memory: 1024M
+      networks:
+        - name: default
+          pod: {}
+        - name: flatl2-overlay
+          multus:
+            networkName: l2-network
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - name: containerdisk
+          containerDisk:
+            image: quay.io/kubevirt/fedora-with-test-tooling-container-disk:devel
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            networkData: |
+              version: 2
+              ethernets:
+                eth1:
+                  addresses: [ 192.0.2.20/24 ]
+            userData: |-
+              # cloud-config
+              password: fedora
+              chpasswd: { expire: False }
+---
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  name: vm-client
+  namespace: steve
+spec:
+  running: true
+  template:
+    spec:
+      nodeSelector:
+        node_type: ovn
+      domain:
+        devices:
+          disks:
+            - name: containerdisk
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - name: default
+              masquerade: {}
+              bootOrder: 1
+            - name: flatl2-overlay
+              bridge: {}
+              bootOrder: 2
+        machine:
+          type: ""
+        resources:
+          requests:
+            memory: 1024M
+      networks:
+        - name: default
+          pod: {}
+        - name: flatl2-overlay
+          multus:
+            networkName: l2-network
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - name: containerdisk
+          containerDisk:
+            image: quay.io/kubevirt/fedora-with-test-tooling-container-disk:devel
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            networkData: |
+              version: 2
+              ethernets:
+                eth1:
+                  addresses: [ 192.0.2.10/24 ]
+            userData: |-
+              # cloud-config
+              password: fedora
+              chpasswd: { expire: False }
+---
+EOF
