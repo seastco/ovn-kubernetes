@@ -111,7 +111,7 @@ func MarshalPodAnnotation(annotations map[string]string, podInfo *PodAnnotation,
 	if annotations == nil {
 		annotations = make(map[string]string)
 	}
-	klog.Infof("Unmarshing existing pod networks annotation for nadName=%s", nadName)
+	klog.Infof("Unmarshalling existing pod networks annotation for nadName=%s", nadName)
 	podNetworks, err := UnmarshalPodAnnotationAllNetworks(annotations)
 	if err != nil {
 		return nil, err

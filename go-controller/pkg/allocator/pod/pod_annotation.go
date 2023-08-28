@@ -278,6 +278,7 @@ func allocatePodAnnotationWithRollback(
 	hasIPRequest := network != nil && len(network.IPRequest) > 0
 	hasStaticIPRequest := hasIPRequest && !reallocateIP
 
+	klog.Infof("hasIPAM=%s, hasIPRequest=%s, hasStaticIPRequest=%s, len(tentative.IPs)=%d for pod %s and network %s", hasIPAM, hasIPRequest, hasStaticIPRequest, len(tentative.IPs), pod.Name, network.Name)
 	if hasIPAM && hasStaticIPRequest {
 		// for now we can't tell apart already allocated IPs from IPs excluded
 		// from allocation so we can't really honor static IP requests when
@@ -291,6 +292,7 @@ func allocatePodAnnotationWithRollback(
 	needsIPOrMAC := len(tentative.IPs) == 0 && (hasIPAM || hasIPRequest)
 	needsIPOrMAC = needsIPOrMAC || len(tentative.MAC) == 0
 	reallocateOnNonStaticIPRequest := len(tentative.IPs) == 0 && hasIPRequest && !hasStaticIPRequest
+	klog.Infof("needsIPOrMac=%s, reallocateOnNonStaticIPRequest=%s for pod %s and network %s", needsIPOrMAC, reallocateOnNonStaticIPRequest, pod.Name, network.Name)
 
 	if len(tentative.IPs) == 0 {
 		if hasIPRequest {
