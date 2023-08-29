@@ -33,7 +33,7 @@ mkdir -p $HOME/work/src/github.com/ovn-org
 cd $HOME/work/src/github.com/ovn-org
 git clone https://github.com/ovn-org/ovn-kubernetes
 cd $HOME/work/src/github.com/ovn-org/ovn-kubernetes/dist/images
-./daemonset.sh --image=ghcr.io/seastco/ovn-kubernetes@sha256:42b8b212e6cdda03ffd6d16fce792c253df5005eca618cbb263d38b3ac3bf9a0 \
+./daemonset.sh --image=ghcr.io/seastco/ovn-kubernetes@sha256:e8191b3dc24267d1f5586e5496787f02e902bbc1cecc45a0ecaf0f14562837fc \
     --net-cidr=10.244.0.0/16 --svc-cidr=10.96.0.0/16 \
     --enable-multi-network="true" \
     --gateway-mode="local" \
