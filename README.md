@@ -35,7 +35,7 @@ git clone https://github.com/ovn-org/ovn-kubernetes
 cd $HOME/work/src/github.com/ovn-org/ovn-kubernetes/dist/images
 ./daemonset.sh --image=ghcr.io/seastco/ovn-kubernetes@sha256:e8191b3dc24267d1f5586e5496787f02e902bbc1cecc45a0ecaf0f14562837fc \
     --net-cidr=10.244.0.0/16 --svc-cidr=10.96.0.0/16 \
-    --enable-multi-network="true" \
+    --multi-network-enable="true" \
     --gateway-mode="local" \
     --k8s-apiserver=https://10.48.3.14:6443
 ```
