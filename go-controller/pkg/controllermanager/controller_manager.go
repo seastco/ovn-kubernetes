@@ -498,10 +498,10 @@ func (cm *ControllerManager) Start(ctx context.Context) error {
 		}
 	}
 
-	err = cm.defaultNetworkController.Start(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to start default network controller: %v", err)
-	}
+	//err = cm.defaultNetworkController.Start(ctx)
+	//if err != nil {
+	//	return fmt.Errorf("failed to start default network controller: %v", err)
+	//}
 
 	return nil
 }
