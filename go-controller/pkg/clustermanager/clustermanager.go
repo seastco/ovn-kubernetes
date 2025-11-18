@@ -177,6 +177,7 @@ func (cm *ClusterManager) Start(ctx context.Context) error {
 		return err
 	}
 
+	// FORK - DISABLE DEFAULT
 	//if err := cm.defaultNetClusterController.Start(ctx); err != nil {
 	//	return err
 	//}
