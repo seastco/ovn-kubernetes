@@ -177,9 +177,10 @@ func (cm *ClusterManager) Start(ctx context.Context) error {
 		return err
 	}
 
-	if err := cm.defaultNetClusterController.Start(ctx); err != nil {
-		return err
-	}
+	// FORK - DISABLE DEFAULT
+	//if err := cm.defaultNetClusterController.Start(ctx); err != nil {
+	//	return err
+	//}
 
 	if err := cm.zoneClusterController.Start(ctx); err != nil {
 		return fmt.Errorf("could not start zone controller, err: %w", err)

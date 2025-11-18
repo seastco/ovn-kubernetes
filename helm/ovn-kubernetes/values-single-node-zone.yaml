@@ -13,8 +13,8 @@ tags:
   ovnkube-zone-controller: false
 
 # -- Endpoint of Kubernetes api server
-k8sAPIServer: https://172.25.0.2:6443
-# -- IP range for Kubernetes pods, /14 is the top level range, under which each /23 range will be assigned to a node
+k8sAPIServer: "" 
+# -- IP range for Kubernetes pods, /16 is the top level range, under which each /24 range will be assigned to a node
 podNetwork: 10.244.0.0/16/24
 # -- A comma-separated set of CIDR notation IP ranges from which k8s assigns service cluster IPs. This should be the same as the value provided for kube-apiserver "--service-cluster-ip-range" option
 serviceNetwork: 10.96.0.0/16
@@ -31,7 +31,7 @@ global:
   # -- GENEVE UDP port (default 6081)
   encapPort: 6081
   # -- The gateway mode (shared or local), if not given, gateway functionality is disabled
-  gatewayMode: shared
+  gatewayMode: ""
   # -- Optional extra gateway options
   gatewayOpts: ""
   # -- This allows ovnkube-node to run without SYS_ADMIN capability, by performing interface setup in the CNI plugin
@@ -49,7 +49,7 @@ global:
   # -- The v6 subnet for transit switch
   v6TransitSwitchSubnet: "fd97::/64"
   # -- Whether or not enable ovnkube identity webhook
-  enableOvnKubeIdentity: true
+  enableOvnKubeIdentity: false
   # -- Indicate if ovnkube run master and node in one process
   enableCompactMode: false
   # -- Whether or not to enable hybrid overlay functionality
@@ -59,21 +59,21 @@ global:
   # -- Whether or not to use Admin Network Policy CRD feature with ovn-kubernetes
   enableAdminNetworkPolicy: false
   # -- Configure to use EgressIP CRD feature with ovn-kubernetes
-  enableEgressIp: true
+  enableEgressIp: false
   # -- Configure EgressIP node reachability using gRPC on this TCP port
   egressIpHealthCheckPort: 9107
   # -- Configure to use EgressService CRD feature with ovn-kubernetes
-  enableEgressService: true
+  enableEgressService: false
   # -- Configure to use EgressFirewall CRD feature with ovn-kubernetes
-  enableEgressFirewall: true
+  enableEgressFirewall: false
   # -- Configure to use EgressQoS CRD feature with ovn-kubernetes
-  enableEgressQos: true
+  enableEgressQos: false
   # -- Enables network QoS support from/to pods
   enableNetworkQos: false
   # -- Enables multicast support between the pods within the same namespace
   enableMulticast: ""
   # -- Configure to use multiple NetworkAttachmentDefinition CRD feature with ovn-kubernetes
-  enableMultiNetwork: false
+  enableMultiNetwork: true
   # -- Configure to use user defined networks (UDN) feature with ovn-kubernetes
   enableNetworkSegmentation: false
   # -- Configure to enable workloads with preconfigured network connect to user defined networks (UDN) with ovn-kubernetes
@@ -85,11 +85,11 @@ global:
   # -- Configure to enable interconnecting multiple zones
   enableInterconnect: true
   # -- Configure to use AdminPolicyBasedExternalRoute CRD feature with ovn-kubernetes
-  enableMultiExternalGateway: true
+  enableMultiExternalGateway: false
   # -- Configure to use stateless network policy feature with ovn-kubernetes
   enableStatelessNetworkPolicy: false
   # -- Configure to use service template feature with ovn-kubernetes
-  enableSvcTemplate: true
+  enableSvcTemplate: false
   # -- Enables metrics related to scaling
   enableMetricsScale: ""
   # -- Enables monitoring OVN-Kubernetes master and OVN configuration duration
@@ -104,7 +104,7 @@ global:
   lFlowCacheLimitKb: ""
   # -- Configure to use the IPAMClaims CRD feature with ovn-kubernetes, thus granting persistent IPs across restarts / migration for KubeVirt VMs
   # @default -- true
-  enablePersistentIPs: true
+  enablePersistentIPs: false
   # -- Configure to use DNSNameResolver feature with ovn-kubernetes
   enableDNSNameResolver: false
   # -- Whether to disable SNAT of egress traffic in namespaces annotated with routing-external-gws
@@ -140,7 +140,7 @@ global:
   # -- Maximum period in seconds for which an IPFIX flow record is cached and aggregated before being sent
   # @default 60
   ipfixCacheActiveTimeout: ""
-  # -- OVN remote probe interval in ms 
+  # -- OVN remote probe interval in ms
   # @default 100000
   remoteProbeInterval: 100000
   # -- Enable monitoring all data from SB DB instead of conditionally monitoring the data relevant to this node only
@@ -149,7 +149,7 @@ global:
   # -- ovn-controller wait time in ms before clearing OpenFlow rules during start up
   # @default 0
   ofctrlWaitBeforeClear: ""
-  # -- Separate log file for libovsdb client 
+  # -- Separate log file for libovsdb client
   libovsdbClientLogFile: ""
   image:
     # -- Image repository for ovn-kubernetes components

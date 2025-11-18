@@ -48,6 +48,8 @@ import (
 
 const DefaultNetworkControllerName = "default-network-controller"
 
+var disableDefaultFork = true
+
 // DefaultNetworkController structure is the object which holds the controls for starting
 // and reacting upon the watched resources (e.g. pods, endpoints) for default l3 network
 type DefaultNetworkController struct {
@@ -359,6 +361,11 @@ func (oc *DefaultNetworkController) Stop() {
 //
 //	If true, then either quit or perform a complete reconfiguration of the cluster (recreate switches/routers with new subnet values)
 func (oc *DefaultNetworkController) init() error {
+	// FORK
+	if disableDefaultFork {
+      return nil
+    }
+	
 	existingNodes, err := oc.watchFactory.GetNodes()
 	if err != nil {
 		klog.Errorf("Error in fetching nodes: %v", err)
@@ -404,6 +411,15 @@ func (oc *DefaultNetworkController) init() error {
 
 // run starts the actual watching.
 func (oc *DefaultNetworkController) run(_ context.Context) error {
+	// FORK
+	if disableDefaultFork {
+		if err := WithSyncDurationMetric("node", oc.WatchNodes); err != nil {
+          return err
+	    }
+		<-oc.stopChan
+		return nil
+	}
+	
 	oc.syncPeriodic()
 	klog.Info("Starting all the Watchers...")
 	start := time.Now()
@@ -751,6 +767,16 @@ func (h *defaultNetworkControllerEventHandler) AddResource(obj interface{}, from
 		if !ok {
 			return fmt.Errorf("could not cast %T object to *kapi.Node", obj)
 		}
+
+		// FORK
+		if disableDefaultFork && config.OVNKubernetesFeature.EnableInterconnect {
+        	if h.oc.isLocalZoneNode(node) {
+				return h.oc.zoneChassisHandler.AddLocalZoneNode(node)
+		  	} else {
+				return h.oc.zoneChassisHandler.AddRemoteZoneNode(node)
+			}
+		}
+		
 		if config.HybridOverlay.Enabled {
 			if util.NoHostSubnet(node) {
 				return h.oc.addUpdateHoNodeEvent(node)
@@ -912,6 +938,16 @@ func (h *defaultNetworkControllerEventHandler) UpdateResource(oldObj, newObj int
 		if !ok {
 			return fmt.Errorf("could not cast oldObj of type %T to *kapi.Node", oldObj)
 		}
+
+		// FORK
+		if disableDefaultFork && config.OVNKubernetesFeature.EnableInterconnect {
+			if h.oc.isLocalZoneNode(newNode) {
+				return h.oc.zoneChassisHandler.AddLocalZoneNode(newNode)
+			} else {
+				return h.oc.zoneChassisHandler.AddRemoteZoneNode(newNode)
+			}
+		}
+		
 		var switchToOvnNode bool
 		if config.HybridOverlay.Enabled {
 			if util.NoHostSubnet(newNode) && !util.NoHostSubnet(oldNode) {
@@ -1115,6 +1151,19 @@ func (h *defaultNetworkControllerEventHandler) DeleteResource(obj, cachedObj int
 		if !ok {
 			return fmt.Errorf("could not cast obj of type %T to *knet.Node", obj)
 		}
+
+		// FORK
+		if disableDefaultFork && config.OVNKubernetesFeature.EnableInterconnect {
+			if !h.oc.isLocalZoneNode(node) {
+				if err := h.oc.zoneChassisHandler.DeleteRemoteZoneNode(node); err != nil {
+					return err
+				}
+			}
+			h.oc.localZoneNodes.Delete(node.Name)
+			h.oc.syncZoneICFailed.Delete(node.Name)
+			return nil
+		}
+		
 		return h.oc.deleteNodeEvent(node)
 
 	case factory.EgressFirewallType:
@@ -1177,7 +1226,14 @@ func (h *defaultNetworkControllerEventHandler) SyncFunc(objs []interface{}) erro
 			syncFunc = h.oc.syncNetworkPolicies
 
 		case factory.NodeType:
-			syncFunc = h.oc.syncNodes
+			// FORK
+			if disableDefaultFork && config.OVNKubernetesFeature.EnableInterconnect {
+				syncFunc = func(objs []interface{}) error {
+					return h.oc.zoneChassisHandler.SyncNodes(objs)
+				}
+			} else {
+				syncFunc = h.oc.syncNodes
+			}
 
 		case factory.EgressFirewallType:
 			syncFunc = h.oc.syncEgressFirewall
