@@ -1,0 +1,40 @@
+--- a/go-controller/pkg/ovn/base_network_controller_pods.go
++++ b/go-controller/pkg/ovn/base_network_controller_pods.go
+@@ -737,14 +737,24 @@ func (bnc *BaseNetworkController) isPodScheduledinLocalZone(pod *corev1.Pod) bo
+ 	isLocalZonePod := true
+
+ 	if bnc.localZoneNodes != nil {
+ 		if util.PodScheduled(pod) {
+ 			_, isLocalZonePod = bnc.localZoneNodes.Load(pod.Spec.NodeName)
++			klog.Infof("[POD-ZONE-DEBUG] isPodScheduledinLocalZone(%s/%s): nodeName=%s, inMap=%v",
++				pod.Namespace, pod.Name, pod.Spec.NodeName, isLocalZonePod)
+ 		} else {
+ 			isLocalZonePod = false
++			klog.Infof("[POD-ZONE-DEBUG] isPodScheduledinLocalZone(%s/%s): pod not scheduled yet",
++				pod.Namespace, pod.Name)
+ 		}
++	} else {
++		klog.Infof("[POD-ZONE-DEBUG] isPodScheduledinLocalZone(%s/%s): localZoneNodes is nil, treating as local",
++			pod.Namespace, pod.Name)
+ 	}
+
+ 	return isLocalZonePod
+ }
+@@ -600,11 +610,15 @@ func (bnc *BaseNetworkController) addLogicalPortToNetwork(pod *corev1.Pod, nadN
+ 	lsp.PortSecurity = addresses
+ 	customFields = append(customFields, libovsdbops.LogicalSwitchPortPortSecurity)
+
+ 	// On layer2 topology with interconnect, we need to add specific port config
+ 	if bnc.isLayer2Interconnect() {
+ 		isRemotePort := !bnc.isPodScheduledinLocalZone(pod)
++		klog.Infof("[LSP-DEBUG] addLogicalPortToNetwork(%s/%s): isLayer2Interconnect=true, isRemotePort=%v",
++			pod.Namespace, pod.Name, isRemotePort)
+ 		err = bnc.zoneICHandler.AddTransitPortConfig(isRemotePort, podAnnotation, lsp)
+ 		if err != nil {
+ 			return nil, nil, nil, false, err
+ 		}
+ 		if isRemotePort {
++			klog.Infof("[LSP-DEBUG] Setting LSP type=remote for pod %s/%s", pod.Namespace, pod.Name)
+ 			customFields = append(customFields, libovsdbops.LogicalSwitchPortType)
+ 		}
+ 	}

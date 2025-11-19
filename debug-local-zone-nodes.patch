@@ -1,0 +1,37 @@
+--- a/go-controller/pkg/ovn/base_secondary_layer2_network_controller.go
++++ b/go-controller/pkg/ovn/base_secondary_layer2_network_controller.go
+@@ -211,11 +211,15 @@ func (oc *BaseLayer2UserDefinedNetworkController) initializeLogicalSwitch(switc
+
+ func (oc *BaseLayer2UserDefinedNetworkController) addUpdateNodeEvent(node *corev1.Node) error {
++	isLocal := oc.isLocalZoneNode(node)
++	klog.Infof("[NODE-EVENT-DEBUG] addUpdateNodeEvent(%s): isLocalZoneNode=%v", node.Name, isLocal)
+ 	if oc.isLocalZoneNode(node) {
+ 		return oc.addUpdateLocalNodeEvent(node)
+ 	}
+ 	return oc.addUpdateRemoteNodeEvent(node)
+ }
+
+ func (oc *BaseLayer2UserDefinedNetworkController) addUpdateLocalNodeEvent(node *corev1.Node) error {
+ 	_, present := oc.localZoneNodes.LoadOrStore(node.Name, true)
++	klog.Infof("[LOCAL-NODE-DEBUG] addUpdateLocalNodeEvent(%s): alreadyPresent=%v, added to localZoneNodes",
++		node.Name, present)
+
+ 	if !present {
+ 		// process all pods so they are reconfigured as local
+@@ -234,6 +238,8 @@ func (oc *BaseLayer2UserDefinedNetworkController) addUpdateLocalNodeEvent(node
+
+ func (oc *BaseLayer2UserDefinedNetworkController) addUpdateRemoteNodeEvent(node *corev1.Node) error {
+ 	_, present := oc.localZoneNodes.Load(node.Name)
++	klog.Infof("[REMOTE-NODE-DEBUG] addUpdateRemoteNodeEvent(%s): wasInLocalMap=%v",
++		node.Name, present)
+
+ 	if present {
+ 		err := oc.deleteNodeEvent(node)
+@@ -264,6 +270,7 @@ func (oc *BaseLayer2UserDefinedNetworkController) syncNodes(nodes []interface{}
+
+ 		// Add the node to the foundNodes only if it belongs to the local zone.
+ 		if oc.isLocalZoneNode(node) {
++			klog.Infof("[SYNC-NODE-DEBUG] syncNodes(%s): adding to localZoneNodes", node.Name)
+ 			oc.localZoneNodes.Store(node.Name, true)
+ 		}
+ 	}
